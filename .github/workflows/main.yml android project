@@ -1,0 +1,45 @@
+name: Fix Android Desugaring
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Nexora
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Generate Android project if missing
+        run: if [ ! -d "android" ]; then flutter create --platforms=android .; fi
+
+      - name: Enable desugaring
+        run: sed -i '/targetCompatibility = JavaVersion.VERSION_17/a\        isCoreLibraryDesugaringEnabled = true' android/app/build.gradle.kts
+
+      - name: Add desugaring dependency
+        run: sed -i '/^kotlin {/i dependencies { coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4") }' android/app/build.gradle.kts
+
+      - name: Verify configuration
+        run: |
+          grep -n "isCoreLibraryDesugaringEnabled" android/app/build.gradle.kts
+          grep -n "coreLibraryDesugaring" android/app/build.gradle.kts
+
+      - name: Commit Android fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add android/app/build.gradle.kts
+          git diff --cached --quiet || git commit -m "Fix Android core library desugaring"
+          git push
