@@ -1,0 +1,94 @@
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Nexora
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Generate Android project if missing
+        run: |
+          if [ ! -d "android" ]; then
+            flutter create --platforms=android .
+          fi
+
+      - name: Write correct Android Gradle configuration
+        run: |
+          cat > android/app/build.gradle.kts <<'EOF'
+          plugins {
+              id("com.android.application")
+              id("dev.flutter.flutter-gradle-plugin")
+          }
+
+          android {
+              namespace = "com.example.nexora"
+              compileSdk = flutter.compileSdkVersion
+              ndkVersion = flutter.ndkVersion
+
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+                  isCoreLibraryDesugaringEnabled = true
+              }
+
+              defaultConfig {
+                  applicationId = "com.example.nexora"
+                  minSdk = flutter.minSdkVersion
+                  targetSdk = flutter.targetSdkVersion
+                  versionCode = flutter.versionCode
+                  versionName = flutter.versionName
+              }
+
+              buildTypes {
+                  release {
+                      signingConfig = signingConfigs.getByName("debug")
+                  }
+              }
+          }
+
+          dependencies {
+              coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+          }
+
+          kotlin {
+              compilerOptions {
+                  jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+              }
+          }
+
+          flutter {
+              source = "../.."
+          }
+          EOF
+
+      - name: Verify configuration
+        run: |
+          grep -q "isCoreLibraryDesugaringEnabled = true" android/app/build.gradle.kts
+          grep -q 'coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")' android/app/build.gradle.kts
+          echo "Android desugaring configuration is correct."
+
+      - name: Commit Android configuration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add android/app/build.gradle.kts
+          if git diff --cached --quiet; then
+            echo "No changes needed."
+          else
+            git commit -m "Fix Android core library desugaring"
+            git push
+          fi
