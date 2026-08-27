@@ -1,0 +1,35 @@
+name: Build Nexora Web
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-web:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get Nexora
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Add Flutter Web
+        run: flutter create . --platforms web
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Web App
+        run: flutter build web --release
+
+      - name: Save Web App
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexora-web
+          path: build/web
