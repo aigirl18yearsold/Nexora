@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -16,6 +17,113 @@ class _SignupScreenState extends State<SignupScreen> {
 
   bool hidePassword = true;
   bool hideConfirmPassword = true;
+  bool isLoading = false;
+
+  @override
+  void dispose() {
+    fullNameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> createAccount() async {
+    final fullName = fullNameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+    final confirmPassword = confirmPasswordController.text;
+
+    if (fullName.isEmpty) {
+      showMessage("Please enter your full name.");
+      return;
+    }
+
+    if (email.isEmpty) {
+      showMessage("Please enter your email.");
+      return;
+    }
+
+    if (password.isEmpty) {
+      showMessage("Please enter a password.");
+      return;
+    }
+
+    if (password.length < 6) {
+      showMessage("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (password != confirmPassword) {
+      showMessage("Passwords do not match.");
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final credential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      await credential.user?.updateDisplayName(fullName);
+
+      if (!mounted) return;
+
+      showMessage("Account created successfully!");
+
+      Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      String message;
+
+      switch (e.code) {
+        case 'email-already-in-use':
+          message = "An account already exists with this email.";
+          break;
+        case 'invalid-email':
+          message = "Please enter a valid email address.";
+          break;
+        case 'weak-password':
+          message = "Your password is too weak.";
+          break;
+        case 'operation-not-allowed':
+          message = "Email/password sign-in is not enabled in Firebase.";
+          break;
+        case 'network-request-failed':
+          message = "Network error. Please check your internet connection.";
+          break;
+        default:
+          message = e.message ?? "Could not create the account.";
+      }
+
+      showMessage(message);
+    } catch (e) {
+      showMessage("Something went wrong. Please try again.");
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  void showMessage(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +137,6 @@ class _SignupScreenState extends State<SignupScreen> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-
               const SizedBox(height: 20),
 
               const Icon(
@@ -58,6 +165,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               TextField(
                 controller: fullNameController,
+                textCapitalization: TextCapitalization.words,
                 decoration: const InputDecoration(
                   labelText: "Full Name",
                   prefixIcon: Icon(Icons.person),
@@ -131,22 +239,28 @@ class _SignupScreenState extends State<SignupScreen> {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Firebase Sign Up will be added later
-                  },
-                  child: const Text(
-                    "Create Account",
-                    style: TextStyle(fontSize: 18),
-                  ),
+                  onPressed: isLoading ? null : createAccount,
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(),
+                        )
+                      : const Text(
+                          "Create Account",
+                          style: TextStyle(fontSize: 18),
+                        ),
                 ),
               ),
 
               const SizedBox(height: 20),
 
               TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                onPressed: isLoading
+                    ? null
+                    : () {
+                        Navigator.pop(context);
+                      },
                 child: const Text(
                   "Already have an account? Login",
                 ),
