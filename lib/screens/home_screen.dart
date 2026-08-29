@@ -1,237 +1,187 @@
- import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'signup_screen.dart';
-import 'home_screen.dart';
-
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-
-  bool obscurePassword = true;
-  bool isLoading = false;
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
-
-  Future<void> login() async {
-    final email = emailController.text.trim();
-    final password = passwordController.text;
-
-    if (email.isEmpty) {
-      showMessage("Please enter your email.");
-      return;
-    }
-
-    if (password.isEmpty) {
-      showMessage("Please enter your password.");
-      return;
-    }
-
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      if (!mounted) return;
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-         builder: (context) => HomeScreen(),,
-        ),
-      );
-    } on FirebaseAuthException catch (e) {
-      String message;
-
-      switch (e.code) {
-        case 'invalid-email':
-          message = "Please enter a valid email address.";
-          break;
-        case 'user-not-found':
-          message = "No account exists with this email.";
-          break;
-        case 'wrong-password':
-        case 'invalid-credential':
-          message = "Incorrect email or password.";
-          break;
-        case 'user-disabled':
-          message = "This account has been disabled.";
-          break;
-        case 'too-many-requests':
-          message = "Too many attempts. Please try again later.";
-          break;
-        case 'network-request-failed':
-          message = "Network error. Please check your internet connection.";
-          break;
-        default:
-          message = e.message ?? "Login failed. Please try again.";
-      }
-
-      showMessage(message);
-    } catch (e) {
-      showMessage("Something went wrong. Please try again.");
-    } finally {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
-  }
-
-  void showMessage(String message) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 4),
-        ),
-      );
-  }
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Login"),
-        centerTitle: true,
+        title: const Text(
+          "Nexora",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () {},
+          ),
+        ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: SingleChildScrollView(
-            child: Column(
+
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Discover Your Next Opportunity",
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            const Text(
+              "Find scholarships, hackathons, internships, "
+              "competitions, and more.",
+              style: TextStyle(
+                fontSize: 16,
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            TextField(
+              decoration: InputDecoration(
+                hintText: "Search opportunities...",
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            const Text(
+              "Explore",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.5,
               children: [
-                const SizedBox(height: 30),
-
-                const Icon(
-                  Icons.school,
-                  size: 90,
+                _categoryCard(
+                  icon: Icons.school_outlined,
+                  title: "Scholarships",
                 ),
-
-                const SizedBox(height: 20),
-
-                const Text(
-                  "Welcome to Nexora",
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                  ),
+                _categoryCard(
+                  icon: Icons.code,
+                  title: "Hackathons",
                 ),
-
-                const SizedBox(height: 10),
-
-                const Text(
-                  "Login to continue",
-                  style: TextStyle(fontSize: 18),
+                _categoryCard(
+                  icon: Icons.work_outline,
+                  title: "Internships",
                 ),
-
-                const SizedBox(height: 40),
-
-                TextField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: "Email",
-                    prefixIcon: Icon(Icons.email),
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                TextField(
-                  controller: passwordController,
-                  obscureText: obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: "Password",
-                    prefixIcon: const Icon(Icons.lock),
-                    border: const OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        obscurePassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          obscurePassword = !obscurePassword;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 55,
-                  child: ElevatedButton(
-                    onPressed: isLoading ? null : login,
-                    child: isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(),
-                          )
-                        : const Text(
-                            "Login",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                  ),
-                ),
-
-                const SizedBox(height: 15),
-
-                TextButton(
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SignupScreen(),
-                            ),
-                          );
-                        },
-                  child: const Text("Create New Account"),
-                ),
-
-                TextButton(
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          showMessage(
-                            "Password reset will be added next.",
-                          );
-                        },
-                  child: const Text("Forgot Password?"),
+                _categoryCard(
+                  icon: Icons.emoji_events_outlined,
+                  title: "Competitions",
                 ),
               ],
             ),
+
+            const SizedBox(height: 30),
+
+            const Text(
+              "Featured Opportunities",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            _opportunityCard(
+              title: "Global AI Hackathon",
+              organization: "Nexora Opportunities",
+              category: "Hackathon",
+            ),
+
+            _opportunityCard(
+              title: "Future Leaders Scholarship",
+              organization: "Nexora Opportunities",
+              category: "Scholarship",
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget _categoryCard({
+    required IconData icon,
+    required String title,
+  }) {
+    return Card(
+      elevation: 2,
+      child: InkWell(
+        onTap: () {},
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 35,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  static Widget _opportunityCard({
+    required String title,
+    required String organization,
+    required String category,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: const CircleAvatar(
+          child: Icon(Icons.star_outline),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text("$organization • $category"),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        onTap: () {},
       ),
     );
   }
