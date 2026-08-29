@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'signup_screen.dart';
@@ -14,6 +15,96 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
 
   bool obscurePassword = true;
+  bool isLoading = false;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> login() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+
+    if (email.isEmpty) {
+      showMessage("Please enter your email.");
+      return;
+    }
+
+    if (password.isEmpty) {
+      showMessage("Please enter your password.");
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      if (!mounted) return;
+
+      showMessage("Login successful!");
+
+      // For now, return to the previous screen after successful login.
+      Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      String message;
+
+      switch (e.code) {
+        case 'invalid-email':
+          message = "Please enter a valid email address.";
+          break;
+        case 'user-not-found':
+          message = "No account exists with this email.";
+          break;
+        case 'wrong-password':
+        case 'invalid-credential':
+          message = "Incorrect email or password.";
+          break;
+        case 'user-disabled':
+          message = "This account has been disabled.";
+          break;
+        case 'too-many-requests':
+          message = "Too many attempts. Please try again later.";
+          break;
+        case 'network-request-failed':
+          message = "Network error. Please check your internet connection.";
+          break;
+        default:
+          message = e.message ?? "Login failed. Please try again.";
+      }
+
+      showMessage(message);
+    } catch (e) {
+      showMessage("Something went wrong. Please try again.");
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  void showMessage(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +119,6 @@ class _LoginScreenState extends State<LoginScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-
                 const SizedBox(height: 30),
 
                 const Icon(
@@ -95,34 +185,44 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Firebase login will be added later
-                    },
-                    child: const Text(
-                      "Login",
-                      style: TextStyle(fontSize: 18),
-                    ),
+                    onPressed: isLoading ? null : login,
+                    child: isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(),
+                          )
+                        : const Text(
+                            "Login",
+                            style: TextStyle(fontSize: 18),
+                          ),
                   ),
                 ),
 
                 const SizedBox(height: 15),
 
                 TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SignupScreen(),
-                      ),
-                    );
-                  },
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SignupScreen(),
+                            ),
+                          );
+                        },
                   child: const Text("Create New Account"),
                 ),
 
                 TextButton(
-                  onPressed: () {
-                    // Forgot Password Screen
-                  },
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          showMessage(
+                            "Password reset will be added next.",
+                          );
+                        },
                   child: const Text("Forgot Password?"),
                 ),
               ],
