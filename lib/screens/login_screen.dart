@@ -1,6 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
+      import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'home_screen.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -25,6 +26,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> login() async {
+    if (isLoading) return;
+
     final email = emailController.text.trim();
     final password = passwordController.text;
 
@@ -50,11 +53,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      showMessage("Login successful!");
-
-      // For now, return to the previous screen after successful login.
-      Navigator.pop(context);
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const HomeScreen(),
+        ),
+        (route) => false,
+      );
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
       String message;
 
       switch (e.code) {
@@ -75,15 +83,16 @@ class _LoginScreenState extends State<LoginScreen> {
           message = "Too many attempts. Please try again later.";
           break;
         case 'network-request-failed':
-          message = "Network error. Please check your internet connection.";
+          message = "Network error. Check your internet connection.";
           break;
         default:
-          message = e.message ?? "Login failed. Please try again.";
+          message = "Login failed: ${e.message ?? e.code}";
       }
 
       showMessage(message);
     } catch (e) {
-      showMessage("Something went wrong. Please try again.");
+      if (!mounted) return;
+      showMessage("Login failed: $e");
     } finally {
       if (mounted) {
         setState(() {
@@ -233,3 +242,5 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+      
+                
