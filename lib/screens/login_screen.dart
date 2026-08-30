@@ -1,4 +1,4 @@
-      import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'home_screen.dart';
@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => HomeScreen(),
+          builder: (context) => const HomeScreen(),
         ),
         (route) => false,
       );
@@ -69,22 +69,28 @@ class _LoginScreenState extends State<LoginScreen> {
         case 'invalid-email':
           message = "Please enter a valid email address.";
           break;
+
         case 'user-not-found':
           message = "No account exists with this email.";
           break;
+
         case 'wrong-password':
         case 'invalid-credential':
           message = "Incorrect email or password.";
           break;
+
         case 'user-disabled':
           message = "This account has been disabled.";
           break;
+
         case 'too-many-requests':
           message = "Too many attempts. Please try again later.";
           break;
+
         case 'network-request-failed':
           message = "Network error. Check your internet connection.";
           break;
+
         default:
           message = "Login failed: ${e.message ?? e.code}";
       }
@@ -92,6 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
       showMessage(message);
     } catch (e) {
       if (!mounted) return;
+
       showMessage("Login failed: $e");
     } finally {
       if (mounted) {
@@ -242,5 +249,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-      
-                
