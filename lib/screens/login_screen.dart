@@ -12,8 +12,11 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController emailController =
+      TextEditingController();
+
+  final TextEditingController passwordController =
+      TextEditingController();
 
   bool obscurePassword = true;
   bool isLoading = false;
@@ -56,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
+          builder: (context) => HomeScreen(),
         ),
         (route) => false,
       );
@@ -88,18 +91,20 @@ class _LoginScreenState extends State<LoginScreen> {
           break;
 
         case 'network-request-failed':
-          message = "Network error. Check your internet connection.";
+          message =
+              "Network error. Check your internet connection.";
           break;
 
         default:
-          message = "Login failed: ${e.message ?? e.code}";
+          message =
+              e.message ?? "Login failed. Please try again.";
       }
 
       showMessage(message);
     } catch (e) {
       if (!mounted) return;
 
-      showMessage("Login failed: $e");
+      showMessage("Something went wrong. Please try again.");
     } finally {
       if (mounted) {
         setState(() {
@@ -129,9 +134,11 @@ class _LoginScreenState extends State<LoginScreen> {
         title: const Text("Login"),
         centerTitle: true,
       ),
+
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
+
           child: SingleChildScrollView(
             child: Column(
               children: [
@@ -156,14 +163,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const Text(
                   "Login to continue",
-                  style: TextStyle(fontSize: 18),
+                  style: TextStyle(
+                    fontSize: 18,
+                  ),
                 ),
 
                 const SizedBox(height: 40),
 
                 TextField(
                   controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType:
+                      TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     labelText: "Email",
                     prefixIcon: Icon(Icons.email),
@@ -178,8 +188,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: obscurePassword,
                   decoration: InputDecoration(
                     labelText: "Password",
-                    prefixIcon: const Icon(Icons.lock),
-                    border: const OutlineInputBorder(),
+                    prefixIcon:
+                        const Icon(Icons.lock),
+                    border:
+                        const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       icon: Icon(
                         obscurePassword
@@ -188,7 +200,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       onPressed: () {
                         setState(() {
-                          obscurePassword = !obscurePassword;
+                          obscurePassword =
+                              !obscurePassword;
                         });
                       },
                     ),
@@ -200,17 +213,23 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(
                   width: double.infinity,
                   height: 55,
+
                   child: ElevatedButton(
-                    onPressed: isLoading ? null : login,
+                    onPressed:
+                        isLoading ? null : login,
+
                     child: isLoading
                         ? const SizedBox(
                             width: 24,
                             height: 24,
-                            child: CircularProgressIndicator(),
+                            child:
+                                CircularProgressIndicator(),
                           )
                         : const Text(
                             "Login",
-                            style: TextStyle(fontSize: 18),
+                            style: TextStyle(
+                              fontSize: 18,
+                            ),
                           ),
                   ),
                 ),
@@ -224,11 +243,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const SignupScreen(),
+                              builder: (context) =>
+                                  const SignupScreen(),
                             ),
                           );
                         },
-                  child: const Text("Create New Account"),
+                  child: const Text(
+                    "Create New Account",
+                  ),
                 ),
 
                 TextButton(
@@ -239,7 +261,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             "Password reset will be added next.",
                           );
                         },
-                  child: const Text("Forgot Password?"),
+                  child: const Text(
+                    "Forgot Password?",
+                  ),
                 ),
               ],
             ),
