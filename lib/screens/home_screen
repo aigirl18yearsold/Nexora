@@ -1,9 +1,83 @@
 import 'package:flutter/material.dart';
 
 import 'category_screen.dart';
+import 'profile_screen.dart';
 
-class HomeScreen extends StatelessWidget {
-  HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController searchController =
+      TextEditingController();
+
+  final List<Map<String, dynamic>> opportunities = [
+    {
+      'title': 'Global AI Hackathon',
+      'category': 'Hackathon',
+      'icon': Icons.code,
+    },
+    {
+      'title': 'Future Leaders Scholarship',
+      'category': 'Scholarship',
+      'icon': Icons.school,
+    },
+    {
+      'title': 'MIT Summer Research',
+      'category': 'Research',
+      'icon': Icons.science,
+    },
+    {
+      'title': 'Global Student Competition',
+      'category': 'Competition',
+      'icon': Icons.emoji_events,
+    },
+    {
+      'title': 'Technology Internship',
+      'category': 'Internship',
+      'icon': Icons.work,
+    },
+  ];
+
+  List<Map<String, dynamic>> filteredOpportunities = [];
+
+  @override
+  void initState() {
+    super.initState();
+    filteredOpportunities = opportunities;
+    searchController.addListener(searchOpportunities);
+  }
+
+  @override
+  void dispose() {
+    searchController.removeListener(searchOpportunities);
+    searchController.dispose();
+    super.dispose();
+  }
+
+  void searchOpportunities() {
+    final query = searchController.text.toLowerCase().trim();
+
+    setState(() {
+      if (query.isEmpty) {
+        filteredOpportunities = opportunities;
+      } else {
+        filteredOpportunities = opportunities.where((item) {
+          return item['title']
+                  .toString()
+                  .toLowerCase()
+                  .contains(query) ||
+              item['category']
+                  .toString()
+                  .toLowerCase()
+                  .contains(query);
+        }).toList();
+      }
+    });
+  }
 
   void openCategory(
     BuildContext context,
@@ -21,46 +95,67 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void showMessage(
+  void openProfile(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ProfileScreen(),
+      ),
+    );
+  }
+
+  void openNotifications(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const NotificationsScreen(),
+      ),
+    );
+  }
+
+  void showOpportunity(
     BuildContext context,
-    String message,
+    String title,
+    String category,
+    IconData icon,
   ) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 2),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OpportunityDetailsScreen(
+          title: title,
+          category: category,
+          icon: icon,
         ),
-      );
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Nexora"),
-        centerTitle: true,
-
+        title: const Text(
+          "Nexora",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: false,
         actions: [
           IconButton(
+            tooltip: "Notifications",
             onPressed: () {
-              showMessage(
-                context,
-                "Notifications coming soon.",
-              );
+              openNotifications(context);
             },
             icon: const Icon(
               Icons.notifications_none,
             ),
           ),
-
           IconButton(
+            tooltip: "Profile",
             onPressed: () {
-              showMessage(
-                context,
-                "Profile coming soon.",
-              );
+              openProfile(context);
             },
             icon: const Icon(
               Icons.person_outline,
@@ -74,10 +169,9 @@ class HomeScreen extends StatelessWidget {
 
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-
           children: [
             const Text(
-              "Welcome Back 👋",
+              "Discover Your Next Opportunity",
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
@@ -87,7 +181,8 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 8),
 
             const Text(
-              "Discover your next opportunity.",
+              "Find scholarships, hackathons, internships, "
+              "competitions, and more.",
               style: TextStyle(
                 fontSize: 16,
               ),
@@ -96,12 +191,18 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 25),
 
             TextField(
+              controller: searchController,
               decoration: InputDecoration(
-                hintText:
-                    "Search scholarships, competitions...",
-                prefixIcon: const Icon(
-                  Icons.search,
-                ),
+                hintText: "Search opportunities...",
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: searchController.text.isNotEmpty
+                    ? IconButton(
+                        onPressed: () {
+                          searchController.clear();
+                        },
+                        icon: const Icon(Icons.clear),
+                      )
+                    : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
@@ -111,183 +212,355 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 30),
 
             const Text(
-              "Categories",
+              "Explore",
               style: TextStyle(
-                fontSize: 22,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
 
             const SizedBox(height: 15),
 
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
+            GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              childAspectRatio: 1.25,
 
               children: [
-                ActionChip(
-                  avatar: const Icon(
-                    Icons.school,
-                  ),
-                  label: const Text(
-                    "Scholarships",
-                  ),
-                  onPressed: () {
-                    openCategory(
-                      context,
-                      "Scholarships",
-                      Icons.school,
-                    );
-                  },
+                _categoryCard(
+                  context,
+                  "Scholarships",
+                  Icons.school,
                 ),
 
-                ActionChip(
-                  avatar: const Icon(
-                    Icons.emoji_events,
-                  ),
-                  label: const Text(
-                    "Competitions",
-                  ),
-                  onPressed: () {
-                    openCategory(
-                      context,
-                      "Competitions",
-                      Icons.emoji_events,
-                    );
-                  },
+                _categoryCard(
+                  context,
+                  "Hackathons",
+                  Icons.code,
                 ),
 
-                ActionChip(
-                  avatar: const Icon(
-                    Icons.code,
-                  ),
-                  label: const Text(
-                    "Hackathons",
-                  ),
-                  onPressed: () {
-                    openCategory(
-                      context,
-                      "Hackathons",
-                      Icons.code,
-                    );
-                  },
+                _categoryCard(
+                  context,
+                  "Internships",
+                  Icons.work,
                 ),
 
-                ActionChip(
-                  avatar: const Icon(
-                    Icons.science,
-                  ),
-                  label: const Text(
-                    "Research",
-                  ),
-                  onPressed: () {
-                    openCategory(
-                      context,
-                      "Research",
-                      Icons.science,
-                    );
-                  },
+                _categoryCard(
+                  context,
+                  "Competitions",
+                  Icons.emoji_events,
                 ),
 
-                ActionChip(
-                  avatar: const Icon(
-                    Icons.work,
-                  ),
-                  label: const Text(
-                    "Internships",
-                  ),
-                  onPressed: () {
-                    openCategory(
-                      context,
-                      "Internships",
-                      Icons.work,
-                    );
-                  },
+                _categoryCard(
+                  context,
+                  "Research",
+                  Icons.science,
                 ),
 
-                ActionChip(
-                  avatar: const Icon(
-                    Icons.military_tech,
-                  ),
-                  label: const Text(
-                    "Olympiads",
-                  ),
-                  onPressed: () {
-                    openCategory(
-                      context,
-                      "Olympiads",
-                      Icons.military_tech,
-                    );
-                  },
+                _categoryCard(
+                  context,
+                  "Olympiads",
+                  Icons.military_tech,
                 ),
               ],
+            ),
+
+            const SizedBox(height: 35),
+
+            Text(
+              searchController.text.isEmpty
+                  ? "Featured Opportunities"
+                  : "Search Results",
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            if (filteredOpportunities.isEmpty)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(30),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.search_off,
+                        size: 50,
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        "No opportunities found.",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            ...filteredOpportunities.map(
+              (item) => Card(
+                margin: const EdgeInsets.only(
+                  bottom: 12,
+                ),
+
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(12),
+
+                  leading: CircleAvatar(
+                    child: Icon(
+                      item['icon'] as IconData,
+                    ),
+                  ),
+
+                  title: Text(
+                    item['title'].toString(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  subtitle: Text(
+                    "Nexora Opportunities • "
+                    "${item['category']}",
+                  ),
+
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 18,
+                  ),
+
+                  onTap: () {
+                    showOpportunity(
+                      context,
+                      item['title'].toString(),
+                      item['category'].toString(),
+                      item['icon'] as IconData,
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _categoryCard(
+    BuildContext context,
+    String title,
+    IconData icon,
+  ) {
+    return Card(
+      elevation: 2,
+
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+
+        onTap: () {
+          openCategory(
+            context,
+            title,
+            icon,
+          );
+        },
+
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 42,
+            ),
+
+            const SizedBox(height: 12),
+
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+// --------------------------------------------------
+// NOTIFICATIONS SCREEN
+// --------------------------------------------------
+
+class NotificationsScreen extends StatelessWidget {
+  const NotificationsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Notifications"),
+      ),
+
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+
+        children: const [
+          Card(
+            child: ListTile(
+              leading: Icon(Icons.school),
+              title: Text("New scholarship available"),
+              subtitle: Text(
+                "A new scholarship opportunity has been added.",
+              ),
+            ),
+          ),
+
+          Card(
+            child: ListTile(
+              leading: Icon(Icons.code),
+              title: Text("New hackathon available"),
+              subtitle: Text(
+                "Check out the latest hackathon opportunities.",
+              ),
+            ),
+          ),
+
+          Card(
+            child: ListTile(
+              leading: Icon(Icons.notifications),
+              title: Text("Welcome to Nexora"),
+              subtitle: Text(
+                "Your opportunity journey starts here.",
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+// --------------------------------------------------
+// OPPORTUNITY DETAILS
+// --------------------------------------------------
+
+class OpportunityDetailsScreen extends StatelessWidget {
+  final String title;
+  final String category;
+  final IconData icon;
+
+  const OpportunityDetailsScreen({
+    super.key,
+    required this.title,
+    required this.category,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Opportunity"),
+      ),
+
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+
+          children: [
+            Center(
+              child: CircleAvatar(
+                radius: 45,
+                child: Icon(
+                  icon,
+                  size: 45,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            Text(
+              category,
+              style: const TextStyle(
+                fontSize: 18,
+              ),
             ),
 
             const SizedBox(height: 30),
 
             const Text(
-              "Featured Opportunities",
+              "About this opportunity",
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
             ),
 
-            const SizedBox(height: 15),
+            const SizedBox(height: 12),
 
-            Card(
-              child: ListTile(
-                leading: const Icon(
-                  Icons.school,
-                ),
-
-                title: const Text(
-                  "MIT Summer Research",
-                ),
-
-                subtitle: const Text(
-                  "Deadline: January 15",
-                ),
-
-                trailing: const Icon(
-                  Icons.arrow_forward_ios,
-                ),
-
-                onTap: () {
-                  openCategory(
-                    context,
-                    "MIT Summer Research",
-                    Icons.school,
-                  );
-                },
+            const Text(
+              "This is an opportunity listed on Nexora. "
+              "More information, eligibility requirements, "
+              "deadlines, and application details will be "
+              "available here.",
+              style: TextStyle(
+                fontSize: 16,
+                height: 1.5,
               ),
             ),
 
-            Card(
-              child: ListTile(
-                leading: const Icon(
-                  Icons.emoji_events,
-                ),
+            const SizedBox(height: 30),
 
-                title: const Text(
-                  "Global AI Challenge",
-                ),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
 
-                subtitle: const Text(
-                  "Deadline: March 20",
-                ),
-
-                trailing: const Icon(
-                  Icons.arrow_forward_ios,
-                ),
-
-                onTap: () {
-                  openCategory(
-                    context,
-                    "Global AI Challenge",
-                    Icons.emoji_events,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        "Application link will be added soon.",
+                      ),
+                    ),
                   );
                 },
+
+                icon: const Icon(
+                  Icons.open_in_new,
+                ),
+
+                label: const Text(
+                  "Apply Now",
+                  style: TextStyle(
+                    fontSize: 17,
+                  ),
+                ),
               ),
             ),
           ],
