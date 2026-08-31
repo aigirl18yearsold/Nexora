@@ -20,12 +20,12 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void showComingSoon(BuildContext context, String feature) {
+  void showMessage(BuildContext context, String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text("$feature coming soon."),
+          content: Text(message),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -40,13 +40,19 @@ class HomeScreen extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () {
-              showComingSoon(context, "Notifications");
+              showMessage(
+                context,
+                "Notifications coming soon.",
+              );
             },
             icon: const Icon(Icons.notifications_none),
           ),
           IconButton(
             onPressed: () {
-              showComingSoon(context, "Profile");
+              showMessage(
+                context,
+                "Profile coming soon.",
+              );
             },
             icon: const Icon(Icons.person_outline),
           ),
@@ -55,6 +61,7 @@ class HomeScreen extends StatelessWidget {
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
+
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -78,14 +85,6 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 25),
 
             TextField(
-              onSubmitted: (value) {
-                if (value.trim().isNotEmpty) {
-                  showComingSoon(
-                    context,
-                    "Search for ${value.trim()}",
-                  );
-                }
-              },
               decoration: InputDecoration(
                 hintText: "Search scholarships, competitions...",
                 prefixIcon: const Icon(Icons.search),
