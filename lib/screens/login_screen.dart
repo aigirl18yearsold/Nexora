@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'home_screen.dart';
 import 'signup_screen.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,11 +12,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController emailController =
-      TextEditingController();
-
-  final TextEditingController passwordController =
-      TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   bool obscurePassword = true;
   bool isLoading = false;
@@ -91,13 +88,11 @@ class _LoginScreenState extends State<LoginScreen> {
           break;
 
         case 'network-request-failed':
-          message =
-              "Network error. Check your internet connection.";
+          message = "Network error. Check your internet connection.";
           break;
 
         default:
-          message =
-              e.message ?? "Login failed. Please try again.";
+          message = e.message ?? "Login failed. Please try again.";
       }
 
       showMessage(message);
@@ -172,8 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 TextField(
                   controller: emailController,
-                  keyboardType:
-                      TextInputType.emailAddress,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     labelText: "Email",
                     prefixIcon: Icon(Icons.email),
@@ -188,20 +182,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: obscurePassword,
                   decoration: InputDecoration(
                     labelText: "Password",
-                    prefixIcon:
-                        const Icon(Icons.lock),
-                    border:
-                        const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.lock),
+                    border: const OutlineInputBorder(),
+
                     suffixIcon: IconButton(
                       icon: Icon(
                         obscurePassword
                             ? Icons.visibility
                             : Icons.visibility_off,
                       ),
+
                       onPressed: () {
                         setState(() {
-                          obscurePassword =
-                              !obscurePassword;
+                          obscurePassword = !obscurePassword;
                         });
                       },
                     ),
@@ -215,15 +208,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 55,
 
                   child: ElevatedButton(
-                    onPressed:
-                        isLoading ? null : login,
+                    onPressed: isLoading ? null : login,
 
                     child: isLoading
                         ? const SizedBox(
                             width: 24,
                             height: 24,
-                            child:
-                                CircularProgressIndicator(),
+                            child: CircularProgressIndicator(),
                           )
                         : const Text(
                             "Login",
@@ -243,11 +234,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  const SignupScreen(),
+                              builder: (context) => const SignupScreen(),
                             ),
                           );
                         },
+
                   child: const Text(
                     "Create New Account",
                   ),
@@ -261,6 +252,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             "Password reset will be added next.",
                           );
                         },
+
                   child: const Text(
                     "Forgot Password?",
                   ),
