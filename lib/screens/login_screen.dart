@@ -26,8 +26,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> login() async {
-    if (isLoading) return;
-
     final email = emailController.text.trim();
     final password = passwordController.text;
 
@@ -53,16 +51,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      Navigator.pushAndRemoveUntil(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => HomeScreen(),
+          builder: (context) => const HomeScreen(),
         ),
-        (route) => false,
       );
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-
       String message;
 
       switch (e.code) {
@@ -88,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
           break;
 
         case 'network-request-failed':
-          message = "Network error. Check your internet connection.";
+          message = "Network error. Please check your internet connection.";
           break;
 
         default:
@@ -97,8 +92,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
       showMessage(message);
     } catch (e) {
-      if (!mounted) return;
-
       showMessage("Something went wrong. Please try again.");
     } finally {
       if (mounted) {
@@ -129,11 +122,9 @@ class _LoginScreenState extends State<LoginScreen> {
         title: const Text("Login"),
         centerTitle: true,
       ),
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
-
           child: SingleChildScrollView(
             child: Column(
               children: [
@@ -158,9 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const Text(
                   "Login to continue",
-                  style: TextStyle(
-                    fontSize: 18,
-                  ),
+                  style: TextStyle(fontSize: 18),
                 ),
 
                 const SizedBox(height: 40),
@@ -184,14 +173,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelText: "Password",
                     prefixIcon: const Icon(Icons.lock),
                     border: const OutlineInputBorder(),
-
                     suffixIcon: IconButton(
                       icon: Icon(
                         obscurePassword
                             ? Icons.visibility
                             : Icons.visibility_off,
                       ),
-
                       onPressed: () {
                         setState(() {
                           obscurePassword = !obscurePassword;
@@ -206,10 +193,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(
                   width: double.infinity,
                   height: 55,
-
                   child: ElevatedButton(
                     onPressed: isLoading ? null : login,
-
                     child: isLoading
                         ? const SizedBox(
                             width: 24,
@@ -218,9 +203,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           )
                         : const Text(
                             "Login",
-                            style: TextStyle(
-                              fontSize: 18,
-                            ),
+                            style: TextStyle(fontSize: 18),
                           ),
                   ),
                 ),
@@ -238,10 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           );
                         },
-
-                  child: const Text(
-                    "Create New Account",
-                  ),
+                  child: const Text("Create New Account"),
                 ),
 
                 TextButton(
@@ -252,10 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             "Password reset will be added next.",
                           );
                         },
-
-                  child: const Text(
-                    "Forgot Password?",
-                  ),
+                  child: const Text("Forgot Password?"),
                 ),
               ],
             ),
